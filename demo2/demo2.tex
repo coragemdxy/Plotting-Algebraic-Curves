@@ -1,0 +1,33 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsthm}
+
+\newtheorem{problem}{Problem}
+\newtheorem{proposition}{Proposition}
+
+\begin{document}
+
+\begin{problem}
+    Suppose \(P \in \mathbb{R}[x]\), P have a number finite of root in \(\mathbb{R}^{2}\) and P is squarefree, demonstrate ....
+\end{problem}
+
+\begin{proof}
+    For a polynomial P, we use CAD on it, and then we can obtain a sequence of samples, denoted \(x_{1}-1 = x_{0}, x_{1}, x_{2}
+    , \dots, x_{s}, x_{s+1} = x_{s}+1\). In this sequence, \(x_{1}, \dots, x_{s}\) are the critical indices. We choose one element 
+    \(\bar{x} \in (x_{i}, x_{i+1})\), \(i=1,2,3, \dots\).
+
+    According to the properties of CAD, \(\forall x \in (x_{i}, x_{i+1})\), \(P(x)\) keep a constant sign, and P is squarefree, so
+    \(\forall x \in (x_{i}, x_{i+1})\), \(P(x)\) have the same number of roots. We can arrange the roots in increasing order as
+    \(y_{1}, y_{2}, \dots, y_{t}\). \(\forall j=1,2,\dots,t\), \(f(\bar{x}, y_{j})=0\) and \(\frac{\partial f}{\partial y}(\bar{x}, y_{j}) \neq 0\)
+    By the Implicit Function Theorem, we obtain \(\forall (\bar{x}, y_{j}), \exists g_{j} \in \mathcal{C}^{1}(I_{}\bar{x}))\), so that \(\forall a in I_{\bar{x}},
+    f(a,g_{j}(a)) = 0\), supposing that \(x_{i} \notin i_{\bar{x}}\). So we can construct a sequence of functions \(h_{1}, h{2}, \dots, h_{t}\), \(h_{j}(\bar{x}, g_{j}(x)) = f(\bar{x}, g_{j}(x)) = 0\)
+
+    If \(\exists a, b = 1,2,3\dots, t, a \neq b\), \(h_{a}, h_{b}\) intersect, the intersection point lies in the sequence \((x_{i})_{i}\), which contradicts our hypothesis
+    So in the interval \(I_{x}\), \((h_{j})_{j}\) don't intersect.
+
+    Using Cauchy's bound, \(\forall h_{j}\), \(\forall a \in I_{\bar{x}}\), \(a\) fixed, the root \(b\) of \(h_{j}\) satisfies \(\left|b\right| < +\infty\). Now we can construct a sequence of dots \(c_{0},c_{1},\dots,c-{m}\in (x_{i},x_{i+1})\),
+    and their neighborhood, which satisfy \(\forall k,l\), \(I_{c_{k}} \cap I_{c_{l}} \neq \varnothing\) and \(\bigcup_{i=0}^{m}I_{c_{i}} = (x_{i},x_{i+1})\). For \(\bar{x} \in I_{c_{k}} \cap I_{c_{k+1}}\), \(h_{c_{k}}(\bar{x}, g_{c_{k}}(\bar{x})) = 
+    h_{c_{k+1}}(\bar{x}, g_{c_{k+1}}(\bar{x})) = 0\). In conclusion, by Unioning all the neighborhood, We can obtain a function \(h_{i,j}: (x_{i},x_{i+1}) \to \mathbb{R}\).
+
+\end{proof}
+\end{document}
