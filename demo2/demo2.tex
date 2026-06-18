@@ -7,8 +7,21 @@
 
 \begin{document}
 
+\begin{proposition}[Implicit Function Theorem]
+    If $F(a, b) = 0$ and $F(x, y)$ is continuously differentiable on some open disk with center $(a, b)$, then, if 
+$$\frac{\partial F}{\partial y}(a, b) \neq 0$$
+there exists an $h > 0$ and a unique function $\phi(x)$ defined for $|x - a| < h$ such that $\phi(a) = b$ and $F(x, \phi(x)) = 0$ for $|x - a| < h$.
+\end{proposition}
+
 \begin{problem}
-    Suppose \(P \in \mathbb{R}[x]\), P have a number finite of root in \(\mathbb{R}^{2}\) and P is squarefree, demonstrate ....
+    Suppose \(P \in \mathbb{R}[x,y]\), P have a number finite of root in \(\mathbb{R}^{2}\) and P is squarefree. Using the first procedure of CAD, we can get a sequence of samples
+    \(x_{1}, x_{2}, \dots, x_{s}\), demonstrate that
+    \begin{itemize}
+        \item \(\forall a,b \in (x_{i},x_{i+1}), a \neq b\), \(P(a,y)\) and \(P(b,y)\) have the same number of roots in \(\mathbb{R}\).
+        \item All curves in \((x_{i},x_{i+1})\) don't intersect.
+        \item \(\forall a \in (x_{i},x_{i+1})\), there is a unique function g, satisfying \\\(\forall x\in I_{a}\), \(P(x,g(x))=0\).
+        \item 
+    \end{itemize}
 \end{problem}
 
 \begin{proof}

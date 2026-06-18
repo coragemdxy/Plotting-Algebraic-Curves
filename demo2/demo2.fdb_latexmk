@@ -1,11 +1,11 @@
 # Fdb version 4
-["xdvipdfmx"] 1781787837.9471 "demo2.xdv" "demo2.pdf" "demo2" 1781787838.15231 0
-  "demo2.xdv" 1781787837.93837 12412 a4f0a706e27019fbfb381a316ba0a475 "xelatex"
+["xdvipdfmx"] 1781793351.93701 "demo2.xdv" "demo2.pdf" "demo2" 1781793352.15362 0
+  "demo2.xdv" 1781793351.92797 16904 5c57d8a5104c1c89bd5f6470902935c7 "xelatex"
   (generated)
   "demo2.pdf"
   (rewritten before read)
-["xelatex"] 1781787837.79776 "/Users/daiyuejia/Documents/stage/demo2/demo2.tex" "demo2.xdv" "demo2" 1781787838.1521 0
-  "/Users/daiyuejia/Documents/stage/demo2/demo2.tex" 1781787837.72117 2352 10fd09f10dda09b0d2d87f4707fd0022 ""
+["xelatex"] 1781793351.77473 "/Users/daiyuejia/Documents/stage/demo2/demo2.tex" "demo2.xdv" "demo2" 1781793352.15336 0
+  "/Users/daiyuejia/Documents/stage/demo2/demo2.tex" 1781793351.69314 3222 42674784509d0b8d671b0a02dde31256 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1246382020 916 f87d7c45f9c908e672703b83b72241a3 ""
@@ -30,8 +30,8 @@
   "/usr/local/texlive/2026/texmf-dist/web2c/texmf.cnf" 1770478701 43630 e9fa012910491fe5ae08a72c3c2997a7 ""
   "/usr/local/texlive/2026/texmf-var/web2c/xetex/xelatex.fmt" 1781613448 5948569 94b3d9aed3cbff7c21d26f3aa4b6225d ""
   "/usr/local/texlive/2026/texmf.cnf" 1774209515 577 648cd9f92f9c0eac486f4c71c85cfbbe ""
-  "demo2.aux" 1781787837.93791 32 3985256e7290058c681f74d7a3565a19 "xelatex"
-  "demo2.tex" 1781787837.72117 2352 10fd09f10dda09b0d2d87f4707fd0022 ""
+  "demo2.aux" 1781793351.92749 32 3985256e7290058c681f74d7a3565a19 "xelatex"
+  "demo2.tex" 1781793351.69314 3222 42674784509d0b8d671b0a02dde31256 ""
   (generated)
   "demo2.aux"
   "demo2.log"
