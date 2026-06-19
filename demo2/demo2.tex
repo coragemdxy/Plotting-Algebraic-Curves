@@ -34,7 +34,7 @@
     Let $x\in(x_{i},x_{i+1})$, $t=\#\lbrace y \in \mathbb{R} : P(x,y) = 0 \rbrace$, and let $y_{1},y_{2},\dots,y_{t}$ be the roots of $P(x,y)$ in ascending order. Show that the following properties hold:
     \begin{enumerate}
         \setcounter{enumi}{2}
-        \item For all $j=1,2,\dots,t$, the previously defined function $g_j$ can be extended over the whole interval \((x_{i},x_{i+1})\). In other words, there exists a unique continuous function \(h_{j}: (x_{i},x_{i+1}) \to \mathbb{R}\) such that \(h_{j}(x) = y_{j}\) and \(\forall x^\prime \in (x_{i},x_{i+1})\), \(P(x^\prime,h_{j}(x^\prime))=0\).
+        \item For all $j=1,2,\dots,t$, let $g_j$ be the local function given by the previous lemma at $(x,y_{j})$. Show that $g_j$ extends uniquely to a continuous function \(h_{j}: (x_{i},x_{i+1}) \to \mathbb{R}\) such that \(h_{j}(x) = y_{j}\) and for all \(x^\prime \in (x_{i},x_{i+1})\), \(P(x^\prime,h_{j}(x^\prime))=0\).
         \item In addition, $h_{1}(x^\prime) < h_{2}(x^\prime) < \dots < h_{t}(x^\prime)$ for all $x^\prime\in (x_{i},x_{i+1})$.
         \item For all $x^\prime\in (x_{i},x_{i+1})$, $\#\lbrace y \in \mathbb{R} : P(x^\prime,y) = 0 \rbrace \geq t$.
     \end{enumerate}
