@@ -5,6 +5,7 @@
 
 \def\review#1{\textcolor{red}{(#1)}}
 
+\newtheorem{definition}{Definition}
 \newtheorem{problem}{Problem}
 \newtheorem{proposition}{Proposition}
 \newtheorem{exercise}{Exercise}
@@ -14,26 +15,28 @@
 
 \begin{proposition}[Implicit Function Theorem]
     \review{What is $F$?}
-    If $F(a, b) = 0$ and $F(x, y)$ is continuously differentiable on some open disk with center $(a, b)$, then, if 
-$$\frac{\partial F}{\partial y}(a, b) \neq 0$$
-there exists an $h > 0$ and a unique function $\phi(x)$ \review{What can we say about $\phi$?} defined for $|x - a| < h$ such that $\phi(a) = b$ and $F(x, \phi(x)) = 0$ for $|x - a| < h$.
+    If $F(a, b) = 0$ and $F(x, y)$ is continuously differentiable on some open disk with center $(a, b)$, then, if
+    $$\frac{\partial F}{\partial y}(a, b) \neq 0$$
+    there exists an $h > 0$ and a unique function $\phi(x)$ \review{What can we say about $\phi$?} defined for $|x - a| < h$ such that $\phi(a) = b$ and $F(x, \phi(x)) = 0$ for $|x - a| < h$.
 \end{proposition}
 
+\begin{definition}
+    Let $P\in\mathbb{R}[x,y]$ be a squarefree polynomial, with $\deg_{y}(P) > 0$. We denote by $\operatorname{proj}(P)$ the set of points $x\in\mathbb{R}$ such that either $\operatorname{Disc}_{y}(P)(x)=0$ or $\operatorname{lc}_{y}(P)(x)=0$.
+\end{definition}
+
 \begin{exercise}
-    Suppose \(P \in \mathbb{R}[x,y]\), P have a number finite of root in \(\mathbb{R}^{2}\) \review{$xy-1=0$ has an infinite number of roots} and P is squarefree. Using the first procedure of CAD \review{What is the first procedure of CAD?}, we can get a sequence of samples \review{or sample points?}
-    \(x_{1}, x_{2}, \dots, x_{s}\). \review{Is the set of points necessarily finite?}
-    Show that for all $i = 0, 1, \dots, s$, the following properties hold:
+    Let $P \in \mathbb{R}[x,y]$ be a squarefree polynomial, with $\deg_{y}(P) > 0$. Suppose that $\#\operatorname{proj}(P)<\infty$. Let $x_{1},x_{2},\dots,x_{s}$ be the elements of $\operatorname{proj}(P)$ in ascending order, and let $x_{0} = -\infty$ and $x_{s+1} = +\infty$. Show that for all $i = 0, 1, \dots, s$, the following properties hold:
     \begin{enumerate}
         \item For all $x\in (x_{i},x_{i+1})$, $\lbrace y \in \mathbb{R} : P(x,y) = 0 \rbrace$ is finite.
         \item For all $(x,y)\in (x_{i},x_{i+1})\times \mathbb{R}$ such that $P(x,y) = 0$, there exists an open neighborhood \(I_{x}\) of \(x\) and a unique function \(g \in \mathcal{C}^{1}(I_{x})\) such that \(g(x) = y\) and \(\forall x^\prime \in I_{x}\), \(P(x^\prime,g(x^\prime))=0\).
     \end{enumerate}
 
-    Let $x\in(x_{i},x_{i+1})$, $t=\#\lbrace y \in \mathbb{R} : P(x,y) = 0 \rbrace$, and let $y_{1},y_{2},\dots,y_{t}$ be the roots of $P(x,y)$ in increasing order. Show that:
+    Let $x\in(x_{i},x_{i+1})$, $t=\#\lbrace y \in \mathbb{R} : P(x,y) = 0 \rbrace$, and let $y_{1},y_{2},\dots,y_{t}$ be the roots of $P(x,y)$ in ascending order. Show that the following properties hold:
     \begin{enumerate}
         \setcounter{enumi}{2}
-        \item For all $j=1,2,\dots,t$, there exists a unique continuous function \(h_{j}: (x_{i},x_{i+1}) \to \mathbb{R}\) such that \(h_{j}(x) = y_{j}\) and \(\forall x^\prime \in (x_{i},x_{i+1})\), \(P(x^\prime,h_{j}(x^\prime))=0\).
+        \item For all $j=1,2,\dots,t$, the previously defined function $g_j$ can be extended over the whole interval \((x_{i},x_{i+1})\). In other words, there exists a unique continuous function \(h_{j}: (x_{i},x_{i+1}) \to \mathbb{R}\) such that \(h_{j}(x) = y_{j}\) and \(\forall x^\prime \in (x_{i},x_{i+1})\), \(P(x^\prime,h_{j}(x^\prime))=0\).
         \item In addition, $h_{1}(x^\prime) < h_{2}(x^\prime) < \dots < h_{t}(x^\prime)$ for all $x^\prime\in (x_{i},x_{i+1})$.
-        \item Hence, for all $x^\prime\in (x_{i},x_{i+1})$, $\#\lbrace y \in \mathbb{R} : P(x^\prime,y) = 0 \rbrace \geq t$.
+        \item For all $x^\prime\in (x_{i},x_{i+1})$, $\#\lbrace y \in \mathbb{R} : P(x^\prime,y) = 0 \rbrace \geq t$.
     \end{enumerate}
 
     Finally, show that the number of roots of $P(x,y)$ in $\mathbb{R}$ is constant for all $x\in (x_{i},x_{i+1})$.
