@@ -2,6 +2,7 @@
 
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{xcolor}
+\usepackage{hyperref}
 
 \def\review#1{\textcolor{red}{(#1)}}
 
@@ -13,11 +14,27 @@
 
 \begin{document}
 
-\begin{proposition}[Implicit Function Theorem]
+\begin{proposition}[The Implicit Function Theorem]
     \review{What is $F$?}
+    \(F: U \subset \mathbb{R}^{2} \to \mathbb{R}\),
     If $F(a, b) = 0$ and $F(x, y)$ is continuously differentiable on some open disk with center $(a, b)$, then, if
     $$\frac{\partial F}{\partial y}(a, b) \neq 0$$
-    there exists an $h > 0$ and a unique function $\phi(x)$ \review{What can we say about $\phi$?} defined for $|x - a| < h$ such that $\phi(a) = b$ and $F(x, \phi(x)) = 0$ for $|x - a| < h$.
+    there exists an $h > 0$ and a unique function $\phi(x)$ continuously differentiable \review{What can we say about $\phi$?} defined for $|x - a| < h$ such that $\phi(a) = b$ and $F(x, \phi(x)) = 0$ for $|x - a| < h$.
+\end{proposition}
+
+\begin{proposition}[{\href{https://web.math.princeton.edu/~js129/PDFs/teaching/analysis_1_fall_2014/Colloquium_Week_9_Continuity_Pasting_Lemma.pdf}{The Actual Pasting Lemma}}]
+    Let $X$ and $Y$ be metric spaces. Let $(A, B) \in \text{Closed}(X)^2$ and assume further that $X = A \cup B$. 
+    Assume that we have two functions $f : A \to Y$ and $g : B \to Y$.
+    Assume that $f(x) = g(x) \quad \forall x \in A \cap B$.
+    Then we can define a new function $h : X \to Y$ by:
+    \[
+    h(x) = \begin{cases}
+        f(x) & \text{if } x \in A, \\
+        g(x) & \text{if } x \in B
+    \end{cases}
+    \]
+    (if $x \in A \cap B$ then we have no ambiguity by assumption).
+    \textbf{Claim:} If both $f$ and $g$ are continuous, then $h$ is continuous.
 \end{proposition}
 
 \begin{definition}
@@ -43,22 +60,11 @@
 \end{exercise}
 
 \begin{proof}
-    For a polynomial P, we use CAD on it, and then we can obtain a sequence of samples, denoted \(x_{1}-1 = x_{0}, x_{1}, x_{2}
-    , \dots, x_{s}, x_{s+1} = x_{s}+1\). In this sequence, \(x_{1}, \dots, x_{s}\) are the critical indices. We choose one element 
-    \(\bar{x} \in (x_{i}, x_{i+1})\), \(i=1,2,3, \dots\).
-
-    According to the properties of CAD, \(\forall x \in (x_{i}, x_{i+1})\), \(P(x)\) keep a constant sign, and P is squarefree, so
-    \(\forall x \in (x_{i}, x_{i+1})\), \(P(x)\) have the same number of roots. We can arrange the roots in increasing order as
-    \(y_{1}, y_{2}, \dots, y_{t}\). \(\forall j=1,2,\dots,t\), \(f(\bar{x}, y_{j})=0\) and \(\frac{\partial f}{\partial y}(\bar{x}, y_{j}) \neq 0\)
-    By the Implicit Function Theorem, we obtain \(\forall (\bar{x}, y_{j}), \exists g_{j} \in \mathcal{C}^{1}(I_{}\bar{x}))\), so that \(\forall a in I_{\bar{x}},
-    f(a,g_{j}(a)) = 0\), supposing that \(x_{i} \notin i_{\bar{x}}\). So we can construct a sequence of functions \(h_{1}, h{2}, \dots, h_{t}\), \(h_{j}(\bar{x}, g_{j}(x)) = f(\bar{x}, g_{j}(x)) = 0\)
-
-    If \(\exists a, b = 1,2,3\dots, t, a \neq b\), \(h_{a}, h_{b}\) intersect, the intersection point lies in the sequence \((x_{i})_{i}\), which contradicts our hypothesis
-    So in the interval \(I_{x}\), \((h_{j})_{j}\) don't intersect.
-
-    Using Cauchy's bound, \(\forall h_{j}\), \(\forall a \in I_{\bar{x}}\), \(a\) fixed, the root \(b\) of \(h_{j}\) satisfies \(\left|b\right| < +\infty\). Now we can construct a sequence of dots \(c_{0},c_{1},\dots,c-{m}\in (x_{i},x_{i+1})\),
-    and their neighborhood, which satisfy \(\forall k,l\), \(I_{c_{k}} \cap I_{c_{l}} \neq \varnothing\) and \(\bigcup_{i=0}^{m}I_{c_{i}} = (x_{i},x_{i+1})\). For \(\bar{x} \in I_{c_{k}} \cap I_{c_{k+1}}\), \(h_{c_{k}}(\bar{x}, g_{c_{k}}(\bar{x})) = 
-    h_{c_{k+1}}(\bar{x}, g_{c_{k+1}}(\bar{x})) = 0\). In conclusion, by Unioning all the neighborhood, We can obtain a function \(h_{i,j}: (x_{i},x_{i+1}) \to \mathbb{R}\).
-
+    \begin{enumerate}
+        \item  For property 1, We know that \(\forall x \in (x_{i},x_{i+1})\), \(lc_{y}(P)(x) \neq 0\), so the polynomial in y \(P(x,y)\) isn't the zero polynomial. It's impossible that \(P(x,y)\) has an infinite number of roots. In conclusion, $\lbrace y \in \mathbb{R} : P(x,y) = 0 \rbrace$ is finite.
+        \item  For property 2, \(\forall (x, y) \in (x_{i},x_{i+1}) \times \mathbb{R}\), we have \(P(x,y)=0\) and \\\(Disc_{y}(P)(x) \neq 0\). P is polynomial function, so it's continuously differentiable. According to the Implicit Function Theorem, there exists an open neighborhood \(I_{x}\) of x, and a unique function \(g \in \mathcal{C}^{1}(I_{x})\), such that \(g(x) = y\) and \(\forall x' \in I_{x}\), \(P(x', g(x')) =0\).
+        \item  For property 3, We firstly show that locally we can get a unique continuous function. Suppose two points $(a,b)$, $(c,d)$, obsessing the functions $g_{j,a}: I_{a} \to \mathbb{R}, g_{j,c}: I_{c} \to \mathbb{R}$ satisfying that $a, c \in (x_{i}, x_{i+1})$ and the open neighborhoods $A = I_{a} \cap I_{c} \neq \varnothing$. For all $e \in A$, we have $P(e,g_{j,a}(e)) = P(e,g_{j,c}(e)) = 0$, locally it's evident that $g_{j,a}(e) = g_{j,c}(e)$. According to the Pasting Lemma, we can construct a function $h_{j,a,c}: I_{a} \cup I_{c} \to \mathbb{R}$, such that $\forall x' \in I_{a} \cup I_{c}$, $P(x', h_{j,a,c}(x')) =0$. We know that $g_{j,a}, g_{j,c}$ are unique, so the function $h_{j,a,c}$ is unique as well. Now $I \in (x_{i}, x_{i+1})$ is the biggest interval  we can obtain by Using Pasting Lemma. Suppose that $I \neq (x_{i},x_{i+1})$, then we can find an index $a \in (x_{i},x_{i+1}) \setminus I$, satisfying that $I_{a} \cap I \neq \varnothing$. By using the Pasting Lemma, we can construct a bigger interval $I \cup I_{a} \in (a_{i}, a_{i+1})$, contradiction. So $I = (x_{i}, x_{i+1})$. Like the local procedure, we can get the $h_{j}$
+        \item  For property 4, 
+    \end{enumerate}
 \end{proof}
 \end{document}
