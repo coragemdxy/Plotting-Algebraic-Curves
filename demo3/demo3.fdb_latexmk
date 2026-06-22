@@ -1,11 +1,11 @@
 # Fdb version 4
-["xdvipdfmx"] 1782123730.79871 "demo3.xdv" "demo3.pdf" "demo3" 1782123731.00423 0
-  "demo3.xdv" 1782123730.78512 28240 ab314490f842b226e2724c6ec5f214b4 "xelatex"
+["xdvipdfmx"] 1782124156.24585 "demo3.xdv" "demo3.pdf" "demo3" 1782124156.45962 0
+  "demo3.xdv" 1782124156.23109 28260 b5bbe7c554d7ce371e14b05e4b7e6d1d "xelatex"
   (generated)
   "demo3.pdf"
   (rewritten before read)
-["xelatex"] 1782123730.57814 "/Users/daiyuejia/Documents/stage/demo3/demo3.tex" "demo3.xdv" "demo3" 1782123731.00384 0
-  "/Users/daiyuejia/Documents/stage/demo3/demo3.tex" 1782123730.26954 4181 9aa8d29fa100501e124787b6e4bc76cc ""
+["xelatex"] 1782124156.00631 "/Users/daiyuejia/Documents/stage/demo3/demo3.tex" "demo3.xdv" "demo3" 1782124156.45921 0
+  "/Users/daiyuejia/Documents/stage/demo3/demo3.tex" 1782124155.92648 4191 aab37854dc571adc06d0a755c0c9b874 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1136768653 1528 f853c4d1b4e0550255e02831fdc8496f ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
@@ -60,9 +60,9 @@
   "/usr/local/texlive/2026/texmf-dist/web2c/texmf.cnf" 1770478701 43630 e9fa012910491fe5ae08a72c3c2997a7 ""
   "/usr/local/texlive/2026/texmf-var/web2c/xetex/xelatex.fmt" 1781613448 5948569 94b3d9aed3cbff7c21d26f3aa4b6225d ""
   "/usr/local/texlive/2026/texmf.cnf" 1774209515 577 648cd9f92f9c0eac486f4c71c85cfbbe ""
-  "demo3.aux" 1782123730.78454 128 8ec89a09013e497d5b92563b73b0583f "xelatex"
-  "demo3.out" 1782123730.77549 0 d41d8cd98f00b204e9800998ecf8427e "xelatex"
-  "demo3.tex" 1782123730.26954 4181 9aa8d29fa100501e124787b6e4bc76cc ""
+  "demo3.aux" 1782124156.23075 128 8ec89a09013e497d5b92563b73b0583f "xelatex"
+  "demo3.out" 1782124156.22142 0 d41d8cd98f00b204e9800998ecf8427e "xelatex"
+  "demo3.tex" 1782124155.92648 4191 aab37854dc571adc06d0a755c0c9b874 ""
   (generated)
   "demo3.aux"
   "demo3.log"
