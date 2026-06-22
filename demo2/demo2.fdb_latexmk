@@ -1,11 +1,11 @@
 # Fdb version 4
-["xdvipdfmx"] 1781868110.79126 "demo2.xdv" "demo2.pdf" "demo2" 1781868111.00805 0
-  "demo2.xdv" 1781868110.77775 31192 55a809ab9a75d96d76b6f649c32f5848 "xelatex"
+["xdvipdfmx"] 1782116130.11256 "demo2.xdv" "demo2.pdf" "demo2" 1782116130.33134 0
+  "demo2.xdv" 1782116130.09861 66408 4a5c46edb54e5013ab081a5cb74dfcb6 "xelatex"
   (generated)
   "demo2.pdf"
   (rewritten before read)
-["xelatex"] 1781868110.55899 "/Users/daiyuejia/Documents/stage/demo2/demo2.tex" "demo2.xdv" "demo2" 1781868111.00768 0
-  "/Users/daiyuejia/Documents/stage/demo2/demo2.tex" 1781868110.47812 5675 86a4bcb78669c225f5a7817d34818180 ""
+["xelatex"] 1782116129.84282 "/Users/daiyuejia/Documents/stage/demo2/demo2.tex" "demo2.xdv" "demo2" 1782116130.3309 0
+  "/Users/daiyuejia/Documents/stage/demo2/demo2.tex" 1782116129.75401 11466 91280459cedfec24adff5b1319f2baf5 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1136768653 1528 f853c4d1b4e0550255e02831fdc8496f ""
   "/usr/local/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
@@ -60,9 +60,9 @@
   "/usr/local/texlive/2026/texmf-dist/web2c/texmf.cnf" 1770478701 43630 e9fa012910491fe5ae08a72c3c2997a7 ""
   "/usr/local/texlive/2026/texmf-var/web2c/xetex/xelatex.fmt" 1781613448 5948569 94b3d9aed3cbff7c21d26f3aa4b6225d ""
   "/usr/local/texlive/2026/texmf.cnf" 1774209515 577 648cd9f92f9c0eac486f4c71c85cfbbe ""
-  "demo2.aux" 1781868110.77741 128 8ec89a09013e497d5b92563b73b0583f "xelatex"
-  "demo2.out" 1781868110.76387 0 d41d8cd98f00b204e9800998ecf8427e "xelatex"
-  "demo2.tex" 1781868110.47812 5675 86a4bcb78669c225f5a7817d34818180 ""
+  "demo2.aux" 1782116130.09823 128 ce4e8fcd2cd78a78dd8635f6ea9c44dc "xelatex"
+  "demo2.out" 1782116130.07404 0 d41d8cd98f00b204e9800998ecf8427e "xelatex"
+  "demo2.tex" 1782116129.75401 11466 91280459cedfec24adff5b1319f2baf5 ""
   (generated)
   "demo2.aux"
   "demo2.log"
