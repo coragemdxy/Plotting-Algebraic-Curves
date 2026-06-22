@@ -1,0 +1,49 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\def\review#1{\textcolor{red}{(#1)}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{exercise}{Exercise}
+
+
+\begin{document}
+
+\begin{definition}
+    An algebraic number is a complex number that is a root of a non-zero polynomial with rational coefficients.
+\end{definition}
+
+\begin{exercise}
+    Prove that \(A\) the set of all algebraic numbers forms a field under the usual operations of addition and multiplication.
+\end{exercise}
+
+\begin{proof}
+    Firstly, we will show that \(A\) is an additive abelian group.
+    \begin{enumerate}
+        \item Closure under addition: suppose that \(a, b \in A\), there exists two polynomials \(P_{1}, P_{2}\), such that \(P_{1}(a) = P_{2}(b) = 0\). Pose \(c = a+b \in \mathbb{C}\), \(b = c-a\), so we have \(P_{2}(c-a) = P_{1}(a) =0\). Now we consider these two polynomials \(P_{1}(x), P_{2}(y-x)\). \(\operatorname{res}(P_{1}, P_{2}, x) = P_{3}(y)\). \(P_{1}, P_{2}\) have the common root \(x = a\). The coefficients of \(P_{1}, P_{2}\) are rational, so the resultant \(P_{3}(y) \in \mathbb{Q}[Y]\) and \(\operatorname{res}(P_{1}, P_{2}, x) = 0\) when \(c = a+b\). \(c\) is the root of the rational polynomial \(P_{3}\). \(P_{3}\) can't always be zero polynomial, because if \(P_{3}\) is a zero polynomial, that's to say for all \(y\), \(P_{2}(y, a) = 0\), \(P_{2}(y,x)\) have infinite roots, but \(P_{2}\) aren't zero polynomials, they have a number finite of roots. Contradiction. So \(c = a+b \in A\)
+        \item Existence of identity element: we can find a polynomial \(P = 2x^{2}\), the root is \(0\), so \(0 \in A\). And for all \(a \in A\), \(a+0 = 0+a = a\).
+        \item Associativity of addition: for normal addition, it's satisfied.
+        \item Existence of additive inverses: suppose that \(a \in A\), so there exists a polynomial with rational coefficients \(P\), such that \(P(a) = 0\). So we can construct a new polynomial \(Q(x) = P(-x)\), Q is a polynomial with rational coefficients and \(P(a) = Q(-a) = 0\), so \(-a \in A\).
+        \item Commutativity of addition: for normal addition, it's satisfied.
+    \end{enumerate}
+
+    Secondly, we will show that \(A\) is a multiplicative monoid.
+    \begin{enumerate}
+        \item Closure under multiplication: suppose \(a,b \in A\), there exists two rational polynomials \(P_{1}, P_{2}\), such that \(P_{1}(a) = P_{2}(b) = 0\). Pose \(c = ab\), \(b = c/a\), we have \(P_{1}(a) = P_{2}(c/a) = 0\). We consider these two polynomials \(P_{1}(x), P_{3}(y,x) = P_{2}(y/x)\). We can construct a new polynomial \(P_{4}(y,x) = x^{n}*P_{3}(y,x), n = deg_{x}(P_{3}(y,x))\). It's clear that when \(x = a, y = c\), \(P_{1}(a) = P_{4}(c,a) = 0\), so \(\operatorname{res}(P_{1}, P_{4},x) = P_{5}(y) = 0\), when \(y = c\). \(P_{1}, P_{4}\) are rational polynomials, so their resultant are rational polynomial too. \(P_{5}\) can't be a zero polynomial, because if \(P_{5}\) is a zero polynomial, which means that \(P_{4}\) have an infinite number of roots, but \(P_{4}\) is not a zero polynomial, it cannot have infinite roots. Contradiction, So \(P_{5}\) isn't a zero polynomial. Now \(P_{5}(y)\) is a rational no-zero polynomial, and \(c\) is its root.
+        \item Existence of identity element: we can find a polynomial \(P = x^{2}-1\), its root is \(1\), so \(1 \in A\). And for all \(a \in A\), \(a * 1 = 1*a = a\).
+        \item Associativity of multiplication: for normal multiplication, it's satisfied.
+    \end{enumerate}
+
+    Thirdly, we know that for normal multiplication and normal addition, multiplication is distributive with respect to addition. 
+
+    Finally, we will prove that \(\forall a \in A, \exists a^{-1} \in A\). We know that \(a \in A\), there exists a rational polynomial \(P = \sum_{i=0}^{n}(c_{i}X^{i})\), such that \(P(a) = 0\). We can construct a new polynomial \(Q = \sum_{i=0}^{n}(c_{i}X^{n-i})\), \(Q(a^{-1}) = ({(a^{-1})}^{n})*\sum_{i=0}^{n}(c^{i}a^{i}) = ({(a^{-1})}^{n})* P(a) = 0\), so \(a^{-1} \in A\).
+
+    In conclusion, \(A\) is a field.
+\end{proof}
+
+\end{document}
