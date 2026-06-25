@@ -1,4 +1,7 @@
-using Nemo
+#=
+This program is used to find the coordinate (x,y) of point, such that x is the coordinate of samplePOints
+and y satisfies that P(x,y) = 0
+=#
 
 function coeffInVar(F,a,b)
     R = parent(F)
@@ -17,7 +20,6 @@ function coeffInVar(F,a,b)
             f += term
         end
     end
-    println(f)
     return f
 end
 
@@ -87,7 +89,6 @@ function getLeadingCoef(P)
             f += g*x^(e[1])
         end
     end
-    println(f)
     return f
 end
 
@@ -95,7 +96,6 @@ function getRootsOfLeadingCoef(P)
     R = parent(P)
     Q = getLeadingCoef(P)
     fac1 = factor(Q)
-    println(fac1)
     s1 = Set{elem_type(QQ)}()
     for (g,e) in fac1
         if degree(g,1) >=2
@@ -117,7 +117,6 @@ function getRootsOfDiscriminant(P)
     Q = derivative(P,2)
     Q1 = sylvesterResultant(P,Q,2)
     Q2 = factor(Q1)
-    println(Q2)
     s2 = Set{elem_type(QQ)}()
     for (g,e) in Q2
         if degree(g,1) >=2
@@ -146,18 +145,26 @@ function getPointsCritical(P)
     end
 
     P1 = squareFree(P)
-    println(P1)
     set1 = getRootsOfLeadingCoef(P1)
 
     set2 = getRootsOfDiscriminant(P1)
 
     return union(set1, set2)
 end
-    
-function main1()
-    R,(x,y) = polynomial_ring(QQ, ["x", "y"])
-    f = (x^2 + y^2 - 1)*(x^2 + y^2 - 4)*x
-    println(f)
-    s = getPointsCritical(f)
-    println(s)
+
+function getSamplePOints(P)
+    array1 = getPointsCritical(P)
+
+    set = []
+    for a in array1
+        append!(set,get)
+    end
+
+end
+
+function main()
+    R,(x,y) = polynomial_ring(QQ,["x","y"])
+
+    f =(x^2 + y^2 - 1)*(x^2 + y^2 - 4)
+    println(getSamplePoints(f))
 end

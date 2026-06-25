@@ -70,7 +70,6 @@ function mobiusTransformation(P, interval)
     x = gens(R)[1]
 
     arraycoef = calSequenceOfCoef(P)
-    println(arraycoef)
     n = length(arraycoef)
     a = interval[1]
     b = interval[2]
@@ -78,8 +77,6 @@ function mobiusTransformation(P, interval)
     Q = zero(QQ)
     for i in 0:(n-1)
         Q += arraycoef[i+1]*(a+b*x)^(i)*(1+x)^(n-i-1)
-        println(arraycoef[i+1]*(a+b*x)^(i)*(1+x)^(n-i-1))
-        println(Q)
     end
     return Q
 end
@@ -93,23 +90,17 @@ function realIsolationPart(P, interval,precise,times)
     if times > maxtimes
         throw(error("The times of recurrence is over the maximum"))
     end
-    if P(interval[1]) == 0
-        append!(res, [interval[1],interval[1]])
-        println(res)
-    end
-    if P(interval[2]) == 0
-        append!(res, [interval[2],interval[2]])
-    end
     Q = mobiusTransformation(P,interval)
-    println(Q)
     num = signVariation(calSequenceOfCoef(Q))
-    println(num)
     if num == 1 && (interval[2]-interval[1]<precise1)
         push!(res,interval)
     elseif num == 0
         return res
     else
         mid = (interval[1]+interval[2])/2
+        if P(mid) == 0
+            push!(res, [mid,mid])
+        end
         interval1 = [interval[1],mid]
         interval2 = [mid,interval[2]]
         append!(res, realIsolationPart(P, interval1,precise, times+1))
@@ -126,11 +117,9 @@ function realIsolation(P,precise)
     end
 
     p = squareFree(P)
-    println(p)
     M = boundOfRoots(p)
 
-    interval = [-M, M]
-    println(interval)
+    interval = [-M-1, M+1]
 
     res = realIsolationPart(p,interval,precise,0)
     return res
@@ -138,7 +127,7 @@ end
 
 function main()
     R,x = polynomial_ring(QQ, "x")
-    f = x-1
+    f =x*(x - 2)*(x + 3)
     precise = 64
     println(realIsolation(f,precise))
 end
