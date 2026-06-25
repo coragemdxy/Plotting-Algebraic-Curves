@@ -288,17 +288,27 @@ end
 
 #Get all the sample points of P with the precise
 function getSamplePoints(P,precise)
-    array1 = getPointsCritical(P)
+    array = getPointsCritical(P)
 
-    array2 = []
-    for a in array1
-        array3 = getRealIsolationOfRoots(P,a,precise)
-        for i in array3
-            push!(array2,(a,i))
+    array1 = sort!(collect(array))
+    n = length(array1)
+    array2 = [array1[1]-1]
+    for i in 1:(n-1)
+        push!(array2,array1[i])
+        push!(array2, (array1[i]+array1[i+1])/2)
+    end
+    push!(array2, array1[n])
+    push!(array2,array1[n]+1)
+
+    array3 = []
+    for a in array2
+        array4 = getRealIsolationOfRoots(P,a,precise)
+        for i in array4
+            push!(array3,(a,i))
         end
     end
 
-    return array2
+    return array3
 end
 
 function main()
