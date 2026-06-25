@@ -41,6 +41,9 @@ function signVariation(list)
     array = filter(x -> x != 0,list)
     n = length(array)
 
+    if n <= 1
+        return 0
+    end
     num = 0
     for i in 1:(n-1)
         if array[i]*array[i+1] < 0
@@ -67,6 +70,7 @@ function mobiusTransformation(P, interval)
     x = gens(R)[1]
 
     arraycoef = calSequenceOfCoef(P)
+    println(arraycoef)
     n = length(arraycoef)
     a = interval[1]
     b = interval[2]
@@ -74,21 +78,33 @@ function mobiusTransformation(P, interval)
     Q = zero(QQ)
     for i in 0:(n-1)
         Q += arraycoef[i+1]*(a+b*x)^(i)*(1+x)^(n-i-1)
+        println(arraycoef[i+1]*(a+b*x)^(i)*(1+x)^(n-i-1))
+        println(Q)
     end
     return Q
 end
 
 #Use Descartes’ law of signs adn Mobius transformation to calculer the interval of every root of a polynomial
-function realIsolationPart(P, interval, times)
+function realIsolationPart(P, interval,precise,times)
     res = []
 
-    maxtimes = 50
+    precise1 =  one(QQ) / (QQ(2)^precise)
+    maxtimes = 500
     if times > maxtimes
         throw(error("The times of recurrence is over the maximum"))
     end
+    if P(interval[1]) == 0
+        append!(res, [interval[1],interval[1]])
+        println(res)
+    end
+    if P(interval[2]) == 0
+        append!(res, [interval[2],interval[2]])
+    end
     Q = mobiusTransformation(P,interval)
+    println(Q)
     num = signVariation(calSequenceOfCoef(Q))
-    if num == 1
+    println(num)
+    if num == 1 && (interval[2]-interval[1]<precise1)
         push!(res,interval)
     elseif num == 0
         return res
@@ -96,31 +112,33 @@ function realIsolationPart(P, interval, times)
         mid = (interval[1]+interval[2])/2
         interval1 = [interval[1],mid]
         interval2 = [mid,interval[2]]
-        append!(res, realIsolationPart(P, interval1, times+1))
-        append!(res, realIsolationPart(P, interval2, times+1))
+        append!(res, realIsolationPart(P, interval1,precise, times+1))
+        append!(res, realIsolationPart(P, interval2,precise,times+1))
 
     end
     return res
 end
 
 #realisation of real isolation.
-function realIsolation(P)
+function realIsolation(P,precise)
     if degree(P) <=0
         return []
     end
 
     p = squareFree(P)
+    println(p)
     M = boundOfRoots(p)
 
     interval = [-M, M]
     println(interval)
 
-    res = realIsolationPart(p,interval,0)
+    res = realIsolationPart(p,interval,precise,0)
     return res
 end
 
 function main()
     R,x = polynomial_ring(QQ, "x")
-    f = x^2 - 7*x + 12
-    println(realIsolation(f))
+    f = x-1
+    precise = 64
+    println(realIsolation(f,precise))
 end
