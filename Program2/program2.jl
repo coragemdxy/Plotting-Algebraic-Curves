@@ -125,9 +125,9 @@ function realIsolation(P,precise)
     return res
 end
 
-function main()
+function main1()
     R,x = polynomial_ring(QQ, "x")
-    f =x*(x - 2)*(x + 3)
+    f =x^4-3x^2
     precise = 64
     println(realIsolation(f,precise))
 end

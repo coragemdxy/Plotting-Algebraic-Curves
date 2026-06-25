@@ -2,12 +2,13 @@
 This program is used to find the coordinate (x,y) of point, such that x is the coordinate of samplePOints
 and y satisfies that P(x,y) = 0
 =#
+using Nemo
 
+#Get the coefficients of variation a, degree b
 function coeffInVar(F,a,b)
     R = parent(F)
     xs = gens(R)
     n = length(xs)
-    d = degree(F, 2)
     f = zero(R)
     for (g,e) in zip(coefficients(F), exponent_vectors(F))
         if e[a] == b
@@ -23,6 +24,7 @@ function coeffInVar(F,a,b)
     return f
 end
 
+#convert a float to QQ
 function convertToQQ(P)
     if iszero(P)
         return zero(QQ)
@@ -30,6 +32,7 @@ function convertToQQ(P)
     return collect(coefficients(P))[1]
 end
 
+#Calculer the sylvesterMatrix of F,G for the variable a
 function sylvesterMatrix(F, G, a)
     parent(F) == parent(G) ||
         throw(ArgumentError("$F and $G must belong to the same polynomial ring"))
@@ -57,11 +60,13 @@ function sylvesterMatrix(F, G, a)
     return S
 end
 
+#Calculer the resultant of F,G for the variable a
 function sylvesterResultant(F, G, a)
     S = sylvesterMatrix(F, G, a)
     return det(S)
 end
 
+#Make a polynomial P squarefree
 function squareFree(P)
     if iszero(P)
         throw(ArgumentError("zero polynomial has no squarefree part"))
@@ -78,6 +83,17 @@ function squareFree(P)
     return divexact(P, G)
 end
 
+function squareFreeUnivar(P)
+    if iszero(P)
+        throw(ArgumentError("zero polynomial has no squarefree part"))
+    end
+
+    dP = derivative(P)
+    G = gcd(P,dP)
+    return divexact(P, G)
+end
+
+#Get the the LeadingCoef for variable y
 function getLeadingCoef(P)
     R = parent(P)
     xs = gens(R)
@@ -92,6 +108,7 @@ function getLeadingCoef(P)
     return f
 end
 
+#Get the roots of Leading coefficients of variable y
 function getRootsOfLeadingCoef(P)
     R = parent(P)
     Q = getLeadingCoef(P)
@@ -112,6 +129,7 @@ function getRootsOfLeadingCoef(P)
     return s1 
 end
 
+#Get the roots of Discriminant of P for variable y
 function getRootsOfDiscriminant(P)
     R = parent(P)
     Q = derivative(P,2)
@@ -134,6 +152,7 @@ function getRootsOfDiscriminant(P)
 
 end
 
+#Get all the x of sample points.
 function getPointsCritical(P)
     if iszero(P)
         throw(ArgumentError("P can not be a zero polynomial."))
@@ -152,19 +171,140 @@ function getPointsCritical(P)
     return union(set1, set2)
 end
 
-function getSamplePOints(P)
-    array1 = getPointsCritical(P)
+#Calculer the bound of roots of a univariate polynomial
+function boundOfRoots(P)
+    array = calSequenceOfCoef(P)
+    n = length(array)
+    S = zero(QQ)
+    for i in 1:(n-1)
+        S += abs(array[i]/array[n])
+    end
+    M = max(one(QQ), S)
 
-    set = []
-    for a in array1
-        append!(set,get)
+    mx = zero(QQ)
+    for i in 1:(n-1)
+        if mx < abs(array[i]/array[n])
+            mx = abs(array[i]/array[n])
+        end
+    end
+    N = one(QQ) + mx
+
+    return min(M, N)
+end
+
+#Calculer the number of sign variation of a sequence
+function signVariation(list)
+    array = filter(x -> x != 0,list)
+    n = length(array)
+
+    if n <= 1
+        return 0
+    end
+    num = 0
+    for i in 1:(n-1)
+        if array[i]*array[i+1] < 0
+            num += 1
+        end
+    end
+    return num
+end
+
+#Calculer the sequence of coefficients of a polynomial
+function calSequenceOfCoef(P)
+    array = []
+    n = degree(P)
+
+    for i in 0:n
+        push!(array,coeff(P,i))
+    end
+    return array
+end
+
+#Make mobius transformation for a polynomial and an interval
+function mobiusTransformation(P, interval)
+    R = parent(P)
+    x = gens(R)[1]
+
+    arraycoef = calSequenceOfCoef(P)
+    n = length(arraycoef)
+    a = interval[1]
+    b = interval[2]
+
+    Q = zero(QQ)
+    for i in 0:(n-1)
+        Q += arraycoef[i+1]*(a+b*x)^(i)*(1+x)^(n-i-1)
+    end
+    return Q
+end
+
+#Use Descartes’ law of signs adn Mobius transformation to calculer the interval of every root of a polynomial
+function realIsolationPart(P, interval,precise,times)
+    res = []
+
+    precise1 =  one(QQ) / (QQ(2)^precise)
+    maxtimes = 500
+    if times > maxtimes
+        throw(error("The times of recurrence is over the maximum"))
+    end
+    Q = mobiusTransformation(P,interval)
+    num = signVariation(calSequenceOfCoef(Q))
+    if num == 1 && (interval[2]-interval[1]<precise1)
+        push!(res,interval)
+    elseif num == 0
+        return res
+    else
+        mid = (interval[1]+interval[2])/2
+        if P(mid) == 0
+            push!(res, [mid,mid])
+        end
+        interval1 = [interval[1],mid]
+        interval2 = [mid,interval[2]]
+        append!(res, realIsolationPart(P, interval1,precise, times+1))
+        append!(res, realIsolationPart(P, interval2,precise,times+1))
+
+    end
+    return res
+end
+
+
+#Get the interval of roots of P at x=a, by using real isolation with the precise.
+function getRealIsolationOfRoots(P,a,precise)
+    Ry, x = polynomial_ring(QQ, "y")
+    Q = evaluate(P, [QQ(a), x])
+
+    if degree(Q) <=0
+        return []
     end
 
+    p = squareFreeUnivar(Q)
+    M = boundOfRoots(p)
+
+    interval = [-M-1, M+1]
+
+    res = realIsolationPart(p,interval,precise,0)
+    return res
+
+end
+
+#Get all the sample points of P with the precise
+function getSamplePoints(P,precise)
+    array1 = getPointsCritical(P)
+
+    array2 = []
+    for a in array1
+        array3 = getRealIsolationOfRoots(P,a,precise)
+        for i in array3
+            push!(array2,(a,i))
+        end
+    end
+
+    return array2
 end
 
 function main()
     R,(x,y) = polynomial_ring(QQ,["x","y"])
 
-    f =(x^2 + y^2 - 1)*(x^2 + y^2 - 4)
-    println(getSamplePoints(f))
+    precise = 60
+    f =(y^2 - x)*(y^2 - x - 2)*(y - x)*(y + x)
+    println(getSamplePoints(f,precise))
 end
