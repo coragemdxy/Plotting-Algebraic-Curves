@@ -1,11 +1,12 @@
 #=
 This program is used to connect sample points of a polynomial, and make sure that the graph connected is 
-isotopic to the graph related to the polynomial.
+isotopic to the graph related to the polynomial and draw the isotopic graph
 =#
 
 using Nemo
+using Plots
 
-##Get the coefficients of variation a, degree b
+#Get the coefficients of variation a, degree b
 function coeffInVar(F,a,b)
     R = parent(F)
     xs = gens(R)
@@ -499,21 +500,50 @@ function getEdges(M)
     return array1
 end
 
+#Get the graph of P=0
+function getGraph(P, precise)
+    points = getSamplePoints(P, precise)
+
+    M = getAdjacencyMatrix(P, points, precise)
+
+    edges = getEdges(M)
+
+    return points, M, edges
+end
+
+function displaygraph(P,precise)
+    points, M, edges = getGraph(P, precise)
+    println("points = ")
+    println(points)
+
+    points1 = []
+    for (a,b) in points
+        c = getMiddleOfInterval(b)
+        push!(points1,(a,c))
+    end
+
+    xs = [Float64(p[1]) for p in points1]
+
+    ys = [Float64(p[2]) for p in points1]
+
+    plt = scatter(xs, ys,label="sample points",xlabel="x",ylabel="y",aspect_ratio=:equal)
+
+    for e in edges
+        i = e[1]
+        j = e[2]
+        plot!(plt,[xs[i], xs[j]],[ys[i], ys[j]],label=false)
+    end
+    
+    display(plt)
+end
+
+
 function main()
     R,(x,y) = polynomial_ring(QQ,["x","y"])
 
     precise = 60
 
-    f = y^2 + x^2-1
+    P = (y^2 + x^2-1)*x*(x^2+y^2-4)
 
-    points, M, edges = getGraph(f, precise)
-
-    println("points = ")
-    println(points)
-
-    println("adjacency matrix = ")
-    println(M)
-
-    println("edges = ")
-    println(edges)
+    displaygraph(P,precise)
 end

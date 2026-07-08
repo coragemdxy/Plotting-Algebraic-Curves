@@ -1,11 +1,7 @@
-#=
-This program is used to connect sample points of a polynomial, and make sure that the graph connected is 
-isotopic to the graph related to the polynomial.
-=#
-
 using Nemo
+using Plots
 
-##Get the coefficients of variation a, degree b
+#Get the coefficients of variation a, degree b
 function coeffInVar(F,a,b)
     R = parent(F)
     xs = gens(R)
@@ -267,40 +263,22 @@ function realIsolationPart(P, interval,precise,times)
     return res
 end
 
-#Get the root of component x-a
-function realIsolationVertical(P,a,precise)
-    R,(x,y) = polynomial_ring(QQ,["x","y"])
-    H = divexact(P, x - QQ(a))
-    Ry, x = polynomial_ring(QQ, "y")
-    Q = evaluate(H, [QQ(a), x])
-    res = []
-    if degree(Q) <=0
-        res = realIsolationVertical(P,a,precise)
-    else
-        p = squareFreeUnivar(Q)
-        M = boundOfRoots(p)
-
-        interval = [-M-1, M+1]
-        res = realIsolationPart(p,interval,precise,0)
-    end
-    return res
-end
-
 
 #Get the interval of roots of P at x=a, by using real isolation with the precise.
 function getRealIsolationOfRoots(P,a,precise)
     Ry, x = polynomial_ring(QQ, "y")
     Q = evaluate(P, [QQ(a), x])
 
-    res = []
     if degree(Q) <=0
-        res = realIsolationVertical(P,a,precise)
-    else
-        p = squareFreeUnivar(Q)
-        M = boundOfRoots(p)
-        interval = [-M-1, M+1]
-        res =realIsolationPart(p,interval,precise,0)
+        return []
     end
+
+    p = squareFreeUnivar(Q)
+    M = boundOfRoots(p)
+
+    interval = [-M-1, M+1]
+
+    res = realIsolationPart(p,interval,precise,0)
     return res
 
 end
@@ -371,16 +349,6 @@ function isCriticalPoint(a, criticals)
     return a in criticals
 end
 
-#Judge whether x = a is a vertical component of P = 0
-function isVerticalComponentAtX(P, a)
-    Ry, x = polynomial_ring(QQ, "y")
-    Q = evaluate(P, [QQ(a), x])
-    if degree(Q) <=0
-        return true
-    end
-    return false
-end
-
 #Get sorted root intervals of P(a,y)=0
 function getSortedRootsAtX(P, a, precise)
     array1 = getRealIsolationOfRoots(P, a, precise)
@@ -435,19 +403,6 @@ function connectOrdinaryAndCritical!(M, P, points, ordinaryX, ordinaryIndices, c
     end
 end
 
-#Connect points on the same vertical component
-function connectVerticalComponent!(M, points, indices)
-    if length(indices) <= 1
-        return
-    end
-
-    sort!(indices, by = i -> getYOfSamplePoint(points[i]))
-
-    for k in 1:(length(indices)-1)
-        addEdge!(M, indices[k], indices[k+1])
-    end
-end
-
 #Get the adjacency matrix of the graph
 function getAdjacencyMatrix(P, points, precise)
     array1 = sort!(collect(getPointsCritical(P)))
@@ -473,13 +428,6 @@ function getAdjacencyMatrix(P, points, precise)
         end
     end
 
-    for x in array2
-        if isCriticalPoint(x, array1) && isVerticalComponentAtX(P, x)
-            indices = getIndicesOfPointsAtX(points, x)
-            connectVerticalComponent!(M, points, indices)
-        end
-    end
-
     return M
 end
 
@@ -499,21 +447,46 @@ function getEdges(M)
     return array1
 end
 
-function main()
+#Get the graph of P=0
+function getGraph(P, precise)
+    points = getSamplePoints(P, precise)
+
+    M = getAdjacencyMatrix(P, points, precise)
+
+    edges = getEdges(M)
+
+    return points, M, edges
+end
+
+function main1()
     R,(x,y) = polynomial_ring(QQ,["x","y"])
 
     precise = 60
 
-    f = y^2 + x^2-1
+    f = (y^2 + x^2-1)*(x^2+y^2-4)
 
     points, M, edges = getGraph(f, precise)
 
     println("points = ")
     println(points)
 
-    println("adjacency matrix = ")
-    println(M)
+    points1 = []
+    for (a,b) in points
+        c = getMiddleOfInterval(b)
+        push!(points1,(a,c))
+    end
 
-    println("edges = ")
-    println(edges)
+    xs = [Float64(p[1]) for p in points1]
+
+    ys = [Float64(p[2]) for p in points1]
+
+    plt = scatter(xs, ys,label="sample points",xlabel="x",ylabel="y",aspect_ratio=:equal)
+
+    for e in edges
+        i = e[1]
+        j = e[2]
+        plot!(plt,[xs[i], xs[j]],[ys[i], ys[j]],label=false)
+    end
+    
+    display(plt)
 end

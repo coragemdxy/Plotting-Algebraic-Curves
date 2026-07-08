@@ -266,22 +266,40 @@ function realIsolationPart(P, interval,precise,times)
     return res
 end
 
+#Get the root of component x-a
+function realIsolationVertical(P,a,precise)
+    R,(x,y) = polynomial_ring(QQ,["x","y"])
+    H = divexact(P, x - QQ(a))
+    Ry, x = polynomial_ring(QQ, "y")
+    Q = evaluate(H, [QQ(a), x])
+    res = []
+    if degree(Q) <=0
+        res = realIsolationVertical(P,a,precise)
+    else
+        p = squareFreeUnivar(Q)
+        M = boundOfRoots(p)
+
+        interval = [-M-1, M+1]
+        res = realIsolationPart(p,interval,precise,0)
+    end
+    return res
+end
+
 
 #Get the interval of roots of P at x=a, by using real isolation with the precise.
 function getRealIsolationOfRoots(P,a,precise)
     Ry, x = polynomial_ring(QQ, "y")
     Q = evaluate(P, [QQ(a), x])
 
+    res = []
     if degree(Q) <=0
-        return []
+        res = realIsolationVertical(P,a,precise)
+    else
+        p = squareFreeUnivar(Q)
+        M = boundOfRoots(p)
+        interval = [-M-1, M+1]
+        res =realIsolationPart(p,interval,precise,0)
     end
-
-    p = squareFreeUnivar(Q)
-    M = boundOfRoots(p)
-
-    interval = [-M-1, M+1]
-
-    res = realIsolationPart(p,interval,precise,0)
     return res
 
 end
@@ -315,6 +333,6 @@ function main()
     R,(x,y) = polynomial_ring(QQ,["x","y"])
 
     precise = 60
-    f =(y^2 - x)*(y^2 - x - 2)*(y - x)*(y + x)
+    f =(y^2 + x^2-1)*x*(x^2+y^2-4)
     println(getSamplePoints(f,precise))
 end
