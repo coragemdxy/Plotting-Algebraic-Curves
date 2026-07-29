@@ -13,10 +13,10 @@ Every box keeps the format used by match_critical_boxes.jl:
 
     ((exactCriticalX, criticalXInterval), yInterval)
 
-Besides the true critical x-coordinates, the program adds one rational sample
-x-coordinate in every open strip and one sample coordinate on each outer
-side.  Consequently an unbounded branch is represented up to an outer sample
-box instead of disappearing from the edge list.
+Besides the true critical x-coordinates, the program adds a configurable
+number of rational sample x-coordinates in every open strip, including the
+two outer strips.  Consequently an unbounded branch is represented up to an
+outer sample box instead of disappearing from the edge list.
 =#
 
 using Nemo
@@ -81,21 +81,42 @@ function topologyRootsOnVerticalFiber(H, beta)
 end
 
 # Choose the ordinary rational x-coordinates used as extra sample fibers.
-# For critical intervals I_1, ..., I_s the result is
-#     beta_0, beta_1, ..., beta_s,
-# where beta_0 is left of I_1, beta_s is right of I_s, and beta_i lies
-# strictly between I_i and I_(i+1).
-function topologyOrdinarySampleXs(criticalIntervals)
+# The result is grouped by open strip.  If there are s critical intervals,
+# the result has s + 1 entries: the left outer strip, every bounded strip, and
+# the right outer strip.  Every strip contains `samplesPerStrip` coordinates.
+#
+# The outer samples stay inside the same unit-wide windows used by the
+# original one-sample implementation.  Choosing samplesPerStrip = 1 exactly
+# preserves the old sample coordinates.
+function topologyOrdinarySampleXs(
+    criticalIntervals,
+    samplesPerStrip::Int,
+)
+    samplesPerStrip >= 1 ||
+        throw(ArgumentError("samplesPerStrip must be at least 1"))
+
     if isempty(criticalIntervals)
-        # A curve such as y = 0 has no critical x-coordinate.  Two ordinary
-        # fibers are still needed in order to produce one representative edge.
-        return [QQ(-1), QQ(1)]
+        # With no critical coordinate, use samplesPerStrip fibers on each side
+        # of zero.  For samplesPerStrip = 1 this is the original [-1, 1].
+        leftSamples = [
+            -QQ(j, samplesPerStrip)
+            for j in samplesPerStrip:-1:1
+        ]
+        rightSamples = [
+            QQ(j, samplesPerStrip)
+            for j in 1:samplesPerStrip
+        ]
+        return [vcat(leftSamples, rightSamples)]
     end
 
-    sampleXs = []
+    sampleXsByStrip = []
 
     firstInterval = criticalIntervals[1][2]
-    push!(sampleXs, firstInterval[1] - 1)
+    leftSamples = [
+        firstInterval[1] - QQ(j, samplesPerStrip)
+        for j in samplesPerStrip:-1:1
+    ]
+    push!(sampleXsByStrip, leftSamples)
 
     for i in 1:(length(criticalIntervals) - 1)
         currentRight = criticalIntervals[i][2][2]
@@ -104,41 +125,42 @@ function topologyOrdinarySampleXs(criticalIntervals)
         currentRight < nextLeft ||
             error("critical x-intervals must be disjoint")
 
-        push!(sampleXs, (currentRight + nextLeft) / 2)
+        gap = nextLeft - currentRight
+        samples = [
+            currentRight + QQ(j, samplesPerStrip + 1) * gap
+            for j in 1:samplesPerStrip
+        ]
+        push!(sampleXsByStrip, samples)
     end
 
     lastInterval = criticalIntervals[end][2]
-    push!(sampleXs, lastInterval[2] + 1)
+    rightSamples = [
+        lastInterval[2] + QQ(j, samplesPerStrip)
+        for j in 1:samplesPerStrip
+    ]
+    push!(sampleXsByStrip, rightSamples)
 
-    return sampleXs
+    return sampleXsByStrip
 end
 
-# Isolate all points of H = 0 on the ordinary rational fiber x = beta and use
-# matchBoxesToCriticalIntervals to give them exactly the same representation
-# as the true critical boxes.
+# Isolate all points of H = 0 on the ordinary rational fiber x = beta.
+# Substitution gives a univariate polynomial in y, so there is no need to run
+# the general bivariate zero-dimensional solver for every sample fiber.
 function topologyBoxesOnOrdinaryFiber(H, beta, boxPrecision::Int)
-    R = parent(H)
-    x, _ = gens(R)
+    rootsAtBeta = topologyRootsOnVerticalFiber(H, beta)
+    isempty(rootsAtBeta) && return []
 
-    points = zeroDimensionalPoints(H, x - QQ(beta), boxPrecision)
-    rawBoxes = [point.box for point in points]
+    exactBeta = parent(first(rootsAtBeta))(beta)
+    sampleInterval = (QQ(beta), QQ(beta))
+    boxes = []
 
-    isempty(rawBoxes) && return []
+    for root in rootsAtBeta
+        yInterval = isolateAlgebraicNumber(root, boxPrecision)
+        push!(boxes, ((exactBeta, sampleInterval), yInterval))
+    end
 
-    Qb = algebraic_closure(QQ)
-    exactBeta = Qb(beta)
-
-    # isolateAlgebraicNumber sometimes returns a very small one-sided interval
-    # even when beta is rational.  Use the union of those x-intervals as the
-    # matching interval instead of assuming that every interval is (beta,beta).
-    sampleLeft = minimum(box[1][1] for box in rawBoxes)
-    sampleRight = maximum(box[1][2] for box in rawBoxes)
-    sampleInterval = (sampleLeft, sampleRight)
-
-    return matchBoxesToCriticalIntervals(
-        rawBoxes,
-        [(exactBeta, sampleInterval)],
-    )
+    sort!(boxes, by = topologyBoxYMiddle)
+    return boxes
 end
 
 # Sort arbitrary sample boxes first by exact x and then by y.
@@ -409,6 +431,39 @@ function topologyEdgeIsLess(firstEdge, secondEdge)
     return topologyBoxYMiddle(firstBox2) < topologyBoxYMiddle(secondBox2)
 end
 
+# Connect roots of the same rank on two consecutive ordinary fibers.  Inside
+# one open strip, the number and vertical order of the real roots are constant,
+# so the k-th root on both fibers belongs to the same curve branch.
+function topologyAddOrderedFiberEdges!(
+    edges,
+    firstBoxes,
+    secondBoxes,
+)
+    length(firstBoxes) == length(secondBoxes) ||
+        error(
+            "the number of real roots changed between two ordinary " *
+            "fibers in the same strip",
+        )
+
+    for k in eachindex(firstBoxes)
+        push!(
+            edges,
+            topologyOrderOneEdge(firstBoxes[k], secondBoxes[k]),
+        )
+    end
+end
+
+# Add all edges between consecutive ordinary fibers in one open strip.
+function topologyAddOrdinaryStripEdges!(edges, boxGroupsInStrip)
+    for j in 1:(length(boxGroupsInStrip) - 1)
+        topologyAddOrderedFiberEdges!(
+            edges,
+            boxGroupsInStrip[j],
+            boxGroupsInStrip[j + 1],
+        )
+    end
+end
+
 # Add edges along every vertical component V(x) = 0.  Consecutive intersection
 # boxes are connected from bottom to top.  The two unbounded rays are not box-
 # to-box edges, so they are not included in the requested return format.
@@ -439,14 +494,21 @@ function topologyPrepareBoxData(
     P;
     boxPrecision::Int,
     intervalPrecision::Int,
+    samplesPerStrip::Int,
 )
     Psf = bivariateSquarefreePart(P)
     V, H = verticalDecomposition(Psf)
+    ordinarySampleXsByStrip =
+        topologyOrdinarySampleXs([], samplesPerStrip)
 
     # A constant H means that P consists only of vertical components.  The
     # present box format describes isolated points on vertical fibers, not a
     # whole vertical line, so there are no finite sample boxes to prepare.
     if degree(H, 2) <= 0
+        ordinaryBoxGroupsByStrip = [
+            [[] for _ in sampleXs]
+            for sampleXs in ordinarySampleXsByStrip
+        ]
         return (
             Psf = Psf,
             V = V,
@@ -455,8 +517,8 @@ function topologyPrepareBoxData(
             criticalIntervals = [],
             criticalBoxes = [],
             criticalBoxGroups = [],
-            ordinarySampleXs = [QQ(-1), QQ(1)],
-            ordinaryBoxGroups = [[], []],
+            ordinarySampleXsByStrip = ordinarySampleXsByStrip,
+            ordinaryBoxGroupsByStrip = ordinaryBoxGroupsByStrip,
             allBoxes = [],
         )
     end
@@ -482,20 +544,27 @@ function topologyPrepareBoxData(
         push!(criticalBoxGroups, topologyBoxesAtX(criticalBoxes, alpha))
     end
 
-    ordinarySampleXs = topologyOrdinarySampleXs(criticalIntervals)
-    ordinaryBoxGroups = []
+    ordinarySampleXsByStrip =
+        topologyOrdinarySampleXs(criticalIntervals, samplesPerStrip)
+    ordinaryBoxGroupsByStrip = []
 
-    for beta in ordinarySampleXs
-        push!(
-            ordinaryBoxGroups,
-            topologyBoxesOnOrdinaryFiber(H, beta, boxPrecision),
-        )
+    for sampleXs in ordinarySampleXsByStrip
+        boxGroupsInStrip = []
+        for beta in sampleXs
+            push!(
+                boxGroupsInStrip,
+                topologyBoxesOnOrdinaryFiber(H, beta, boxPrecision),
+            )
+        end
+        push!(ordinaryBoxGroupsByStrip, boxGroupsInStrip)
     end
 
     allBoxes = []
     append!(allBoxes, criticalBoxes)
-    for group in ordinaryBoxGroups
-        append!(allBoxes, group)
+    for boxGroupsInStrip in ordinaryBoxGroupsByStrip
+        for group in boxGroupsInStrip
+            append!(allBoxes, group)
+        end
     end
     sort!(allBoxes, lt = topologyBoxIsLess)
 
@@ -507,24 +576,28 @@ function topologyPrepareBoxData(
         criticalIntervals = criticalIntervals,
         criticalBoxes = criticalBoxes,
         criticalBoxGroups = criticalBoxGroups,
-        ordinarySampleXs = ordinarySampleXs,
-        ordinaryBoxGroups = ordinaryBoxGroups,
+        ordinarySampleXsByStrip = ordinarySampleXsByStrip,
+        ordinaryBoxGroupsByStrip = ordinaryBoxGroupsByStrip,
         allBoxes = allBoxes,
     )
 end
 
 """
-    getTopologySampleBoxes(P; boxPrecision=64, intervalPrecision=32)
+    getTopologySampleBoxes(P; samplesPerStrip,
+                           boxPrecision=64, intervalPrecision=32)
 
 Return all boxes used by `connectCriticalBoxes`: true critical-fiber boxes,
-one ordinary sample fiber in every strip, and the two outer sample fibers.
+`samplesPerStrip` ordinary sample fibers in every bounded and outer strip.
 The boxes are sorted by x and then by y.
 """
 function getTopologySampleBoxes(
     P;
     boxPrecision::Int = 64,
     intervalPrecision::Int = 32,
+    samplesPerStrip::Int,
 )
+    samplesPerStrip >= 1 ||
+        throw(ArgumentError("samplesPerStrip must be at least 1"))
     boxPrecision > intervalPrecision ||
         throw(ArgumentError(
             "boxPrecision must be larger than intervalPrecision",
@@ -534,26 +607,30 @@ function getTopologySampleBoxes(
         P;
         boxPrecision = boxPrecision,
         intervalPrecision = intervalPrecision,
+        samplesPerStrip = samplesPerStrip,
     )
     return data.allBoxes
 end
 
 """
-    connectCriticalBoxes(P; boxPrecision=64, intervalPrecision=32,
-                         refinementStep=8, maxRefinements=8)
+    connectCriticalBoxes(P; samplesPerStrip,
+                         boxPrecision=64, intervalPrecision=32,
+                         refinementStep=8,
+                         maxRefinements=8)
 
 Return the box-to-box edges of the sampled real curve `P = 0`.
 
 Each result is `(firstBox, secondBox)`.  The first box has smaller critical
 x-coordinate, and the full array is sorted by that first critical point.
-The vertices include ordinary midpoint and outer sample boxes, so branches
-leading away from the leftmost or rightmost critical fiber are retained up to
-an outer sample box.
+Every bounded and outer strip contains `samplesPerStrip` ordinary fibers.
+Branches leading away from the leftmost or rightmost critical fiber are
+retained up to the outermost sample box.
 """
 function connectCriticalBoxes(
     P;
     boxPrecision::Int = 64,
     intervalPrecision::Int = 32,
+    samplesPerStrip::Int,
     refinementStep::Int = 8,
     maxRefinements::Int = 8,
 )
@@ -565,6 +642,8 @@ function connectCriticalBoxes(
         throw(ArgumentError("refinementStep must be positive"))
     maxRefinements >= 0 ||
         throw(ArgumentError("maxRefinements must be nonnegative"))
+    samplesPerStrip >= 1 ||
+        throw(ArgumentError("samplesPerStrip must be at least 1"))
     boxPrecision > intervalPrecision ||
         throw(ArgumentError(
             "boxPrecision must be larger than intervalPrecision so that " *
@@ -575,31 +654,28 @@ function connectCriticalBoxes(
         P;
         boxPrecision = boxPrecision,
         intervalPrecision = intervalPrecision,
+        samplesPerStrip = samplesPerStrip,
     )
 
     V = data.V
     H = data.H
     criticalPoints = data.criticalPoints
     boxGroups = data.criticalBoxGroups
-    ordinaryBoxGroups = data.ordinaryBoxGroups
+    ordinaryBoxGroupsByStrip = data.ordinaryBoxGroupsByStrip
 
     degree(H, 2) <= 0 && return []
 
     edges = []
 
+    # Extra ordinary fibers only subdivide branches inside a strip.  Connect
+    # roots of equal rank on each consecutive pair of fibers.
+    for boxGroupsInStrip in ordinaryBoxGroupsByStrip
+        topologyAddOrdinaryStripEdges!(edges, boxGroupsInStrip)
+    end
+
     # If there is no critical x-coordinate, root order is constant on the
-    # whole real line.  Connect the two outer ordinary fibers directly.
+    # whole real line.  The ordinary-fiber chain is the complete finite graph.
     if isempty(criticalPoints)
-        leftBoxes = ordinaryBoxGroups[1]
-        rightBoxes = ordinaryBoxGroups[2]
-
-        length(leftBoxes) == length(rightBoxes) ||
-            error("the number of roots changed although there is no critical x")
-
-        for k in eachindex(leftBoxes)
-            push!(edges, topologyOrderOneEdge(leftBoxes[k], rightBoxes[k]))
-        end
-
         sort!(edges, lt = topologyEdgeIsLess)
         return edges
     end
@@ -622,13 +698,12 @@ function connectCriticalBoxes(
         )
     end
 
-    # Every critical fiber has one ordinary sample fiber on its left and one
-    # on its right.  Root order is constant between the ordinary fiber and the
-    # critical fiber, so root k on both nearby ordinary lines is the same
-    # branch.
+    # Attach every critical fiber to the nearest ordinary fiber in the strip
+    # on each side.  Root order is constant between that ordinary fiber and the
+    # critical interval boundary, so root k on both lines is the same branch.
     for i in eachindex(criticalPoints)
-        leftOrdinaryBoxes = ordinaryBoxGroups[i]
-        rightOrdinaryBoxes = ordinaryBoxGroups[i + 1]
+        leftOrdinaryBoxes = last(ordinaryBoxGroupsByStrip[i])
+        rightOrdinaryBoxes = first(ordinaryBoxGroupsByStrip[i + 1])
 
         length(leftOrdinaryBoxes) == length(incidences[i].leftRoots) ||
             error(
@@ -674,14 +749,15 @@ function connectCriticalBoxes(
 end
 
 
-# A small example for interactive use.  This function is not run when the file
-# is included.
-function main()
+# A small low-level example for interactive use.  This function is not run
+# when the file is included; call main(numberOfSamples) explicitly.
+function main(samplesPerStrip::Int)
     R, (x, y) = polynomial_ring(QQ, ["x", "y"])
     P = (x^2 + y^2 - 1) * x
 
     edges = connectCriticalBoxes(
         P;
+        samplesPerStrip = samplesPerStrip,
         boxPrecision = 32,
         intervalPrecision = 16,
     )
