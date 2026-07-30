@@ -1,11 +1,16 @@
 #=
 Connect critical-fiber boxes and ordinary sample-fiber boxes.
 
-The main function is
+The complete graph interface is
 
-    connectCriticalBoxes(P)
+    topologyGraphData(P)
 
-It returns an array of edges.  Every edge has the form
+It returns both the sampled vertices and the edges between them.  Keeping the
+vertex array is essential for isolated real points, because such a point is a
+vertex of degree zero and therefore cannot be recovered from the edge array.
+
+For compatibility, `connectCriticalBoxes(P)` still returns only an array of
+edges.  Every edge has the form
 
     (firstBox, secondBox)
 
@@ -612,51 +617,15 @@ function getTopologySampleBoxes(
     return data.allBoxes
 end
 
-"""
-    connectCriticalBoxes(P; samplesPerStrip,
-                         boxPrecision=64, intervalPrecision=32,
-                         refinementStep=8,
-                         maxRefinements=8)
-
-Return the box-to-box edges of the sampled real curve `P = 0`.
-
-Each result is `(firstBox, secondBox)`.  The first box has smaller critical
-x-coordinate, and the full array is sorted by that first critical point.
-Every bounded and outer strip contains `samplesPerStrip` ordinary fibers.
-Branches leading away from the leftmost or rightmost critical fiber are
-retained up to the outermost sample box.
-"""
-function connectCriticalBoxes(
-    P;
-    boxPrecision::Int = 64,
-    intervalPrecision::Int = 32,
-    samplesPerStrip::Int,
-    refinementStep::Int = 8,
-    maxRefinements::Int = 8,
+# Construct the edges after the vertex/box data has already been prepared.
+# Keeping this step separate lets topologyGraphData return both vertices and
+# edges without repeating any algebraic isolation work.
+function topologyEdgesFromPreparedData(
+    data;
+    intervalPrecision::Int,
+    refinementStep::Int,
+    maxRefinements::Int,
 )
-    boxPrecision >= 0 ||
-        throw(ArgumentError("boxPrecision must be nonnegative"))
-    intervalPrecision >= 0 ||
-        throw(ArgumentError("intervalPrecision must be nonnegative"))
-    refinementStep > 0 ||
-        throw(ArgumentError("refinementStep must be positive"))
-    maxRefinements >= 0 ||
-        throw(ArgumentError("maxRefinements must be nonnegative"))
-    samplesPerStrip >= 1 ||
-        throw(ArgumentError("samplesPerStrip must be at least 1"))
-    boxPrecision > intervalPrecision ||
-        throw(ArgumentError(
-            "boxPrecision must be larger than intervalPrecision so that " *
-            "critical boxes fit inside their matched x-intervals",
-        ))
-
-    data = topologyPrepareBoxData(
-        P;
-        boxPrecision = boxPrecision,
-        intervalPrecision = intervalPrecision,
-        samplesPerStrip = samplesPerStrip,
-    )
-
     V = data.V
     H = data.H
     criticalPoints = data.criticalPoints
@@ -746,6 +715,75 @@ function connectCriticalBoxes(
 
     sort!(edges, lt = topologyEdgeIsLess)
     return edges
+end
+
+"""
+    topologyGraphData(P; samplesPerStrip,
+                      boxPrecision=64, intervalPrecision=32,
+                      refinementStep=8,
+                      maxRefinements=8)
+
+Return the complete sampled topology graph of `P = 0` as
+
+    (vertices = vertices, edges = edges)
+
+Unlike an edge-only representation, `vertices` also retains boxes with degree
+zero.  Consequently isolated real points remain available to the plotting
+layer even though they occur in no edge.
+"""
+function topologyGraphData(
+    P;
+    boxPrecision::Int = 64,
+    intervalPrecision::Int = 32,
+    samplesPerStrip::Int,
+    refinementStep::Int = 8,
+    maxRefinements::Int = 8,
+)
+    boxPrecision >= 0 ||
+        throw(ArgumentError("boxPrecision must be nonnegative"))
+    intervalPrecision >= 0 ||
+        throw(ArgumentError("intervalPrecision must be nonnegative"))
+    refinementStep > 0 ||
+        throw(ArgumentError("refinementStep must be positive"))
+    maxRefinements >= 0 ||
+        throw(ArgumentError("maxRefinements must be nonnegative"))
+    samplesPerStrip >= 1 ||
+        throw(ArgumentError("samplesPerStrip must be at least 1"))
+    boxPrecision > intervalPrecision ||
+        throw(ArgumentError(
+            "boxPrecision must be larger than intervalPrecision so that " *
+            "critical boxes fit inside their matched x-intervals",
+        ))
+
+    data = topologyPrepareBoxData(
+        P;
+        boxPrecision = boxPrecision,
+        intervalPrecision = intervalPrecision,
+        samplesPerStrip = samplesPerStrip,
+    )
+    edges = topologyEdgesFromPreparedData(
+        data;
+        intervalPrecision = intervalPrecision,
+        refinementStep = refinementStep,
+        maxRefinements = maxRefinements,
+    )
+    return (
+        vertices = data.allBoxes,
+        edges = edges,
+    )
+end
+
+"""
+    connectCriticalBoxes(P; samplesPerStrip,
+                         boxPrecision=64, intervalPrecision=32,
+                         refinementStep=8,
+                         maxRefinements=8)
+
+Return only the box-to-box edges of `topologyGraphData(P)`.  This compatibility
+wrapper preserves the original public interface for existing callers.
+"""
+function connectCriticalBoxes(P; kwargs...)
+    return topologyGraphData(P; kwargs...).edges
 end
 
 

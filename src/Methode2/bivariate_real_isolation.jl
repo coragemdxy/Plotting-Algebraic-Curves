@@ -13,6 +13,7 @@ returned in one Set.
 =#
 
 using Nemo
+import AlgebraicSolving
 
 # Make sure the polynomial is a nonzero QQ polynomial.
 function requireBivariateQQPolynomial(P)
@@ -236,28 +237,64 @@ function buchbergerBasis(polynomials; priority = [1, 2])
     return basis
 end
 
-# Get an eliminant in x or y from a lex Groebner basis.
+# Rewrite a polynomial so that the variable to eliminate is the first variable
+# and the variable to keep is the second one.  AlgebraicSolving eliminates the
+# first variable block, while callers of eliminationPolynomial specify the
+# variable which must be retained.
+function polynomialForBlockElimination(P, S, eliminate::Int, keep::Int)
+    eliminatedVariable, keptVariable = gens(S)
+    q = zero(S)
+
+    for (c, e) in zip(coefficients(P), exponent_vectors(P))
+        q += c *
+            eliminatedVariable^e[eliminate] *
+            keptVariable^e[keep]
+    end
+    return q
+end
+
+# Get an eliminant in x or y with AlgebraicSolving's F4 block-elimination
+# algorithm.  Local resultants are used later only for matching coordinates
+# inside one irreducible x-block.
 function eliminationPolynomial(F, G, keep::Int)
-    # To keep x, eliminate y first (priority y > x), and conversely for y.
-    priority = keep == 1 ? [2, 1] : [1, 2]
-    basis = buchbergerBasis([F, G]; priority = priority)
-    candidates = []
+    keep in (1, 2) || throw(ArgumentError("keep must be 1 or 2"))
+    parent(F) == parent(G) ||
+        throw(ArgumentError("F and G must have the same parent"))
+    iszero(F) && throw(ArgumentError("F must not be zero"))
+    iszero(G) && throw(ArgumentError("G must not be zero"))
+
+    eliminate = keep == 1 ? 2 : 1
+    S, _ = polynomial_ring(
+        QQ,
+        ["eliminated", "kept"];
+        internal_ordering = :degrevlex,
+    )
+    reorderedF = polynomialForBlockElimination(F, S, eliminate, keep)
+    reorderedG = polynomialForBlockElimination(G, S, eliminate, keep)
+    ideal = AlgebraicSolving.Ideal([reorderedF, reorderedG])
+    basis = AlgebraicSolving.eliminate(ideal, 1)
+
+    T, t = polynomial_ring(QQ, keep == 1 ? "x" : "y")
+    candidates = elem_type(T)[]
     for g in basis
-        q = toUnivariate(g, keep)
-        if q !== nothing && q != 0
-            push!(candidates, q)
+        q = zero(T)
+        for (c, e) in zip(coefficients(g), exponent_vectors(g))
+            iszero(e[1]) ||
+                error(
+                    "internal error: block elimination retained " *
+                    "the eliminated variable",
+                )
+            q += c * t^e[2]
         end
+        iszero(q) || push!(candidates, q)
     end
 
     if isempty(candidates)
-        # A zero-dimensional elimination ideal must contain a nonzero
-        # univariate polynomial.
         throw(ArgumentError("the system is not zero-dimensional"))
     end
 
     sort!(candidates, by = degree)
-    q = first(candidates)
-    return divexact(q, gcd(q, derivative(q)))
+    return univariateSquarefreePart(first(candidates))
 end
 
 
@@ -289,21 +326,249 @@ function isolateAlgebraicNumber(a, precise::Int)
     return (left, right)
 end
 
-# Return all distinct exact real solutions of F = G = 0.
-function zeroDimensionalPoints(F, G, precise::Int)
-    parent(F) == parent(G) || throw(ArgumentError("F and G must have the same parent"))
-    iszero(F) && throw(ArgumentError("F must not be zero"))
-    iszero(G) && throw(ArgumentError("G must not be zero"))
-
-    tx = eliminationPolynomial(F, G, 1)
-    ty = eliminationPolynomial(F, G, 2)
+# Return the distinct real roots of a univariate QQ polynomial.
+function realRootsAsAlgebraic(q)
+    degree(q) <= 0 && return QQBarFieldElem[]
     Qb = algebraic_closure(QQ)
-    xs = unique(filter(is_real, roots(Qb, tx)))
-    ys = unique(filter(is_real, roots(Qb, ty)))
+    squarefree_q = univariateSquarefreePart(q)
+    return unique(filter(is_real, roots(Qb, squarefree_q)))
+end
+
+# Evaluate a bivariate QQ polynomial by ball arithmetic.  A ball which excludes
+# zero certifies that the corresponding Cartesian-product candidate is false.
+function evaluateAtArbPoint(P, a, b)
+    B = parent(a)
+    value = zero(B)
+    for (c, e) in zip(coefficients(P), exponent_vectors(P))
+        value += B(c) * a^e[1] * b^e[2]
+    end
+    return value
+end
+
+function pairwiseDisjoint(balls)
+    for i in 1:length(balls), j in (i + 1):length(balls)
+        overlaps(balls[i], balls[j]) && return false
+    end
+    return true
+end
+
+# Use inexpensive certified interval rejection before constructing a separating
+# projection.  True solutions are never removed: only balls on which H excludes
+# zero are discarded.
+function arbCandidatePairs(H, xs, ys)
+    candidates = [(i, j) for i in eachindex(xs) for j in eachindex(ys)]
+    for bits in (64, 128, 256, 512, 1024)
+        B = ArbField(bits)
+        xballs = B.(xs)
+        yballs = B.(ys)
+        candidates = [
+            (i, j) for (i, j) in candidates
+            if contains_zero(evaluateAtArbPoint(H, xballs[i], yballs[j]))
+        ]
+        isempty(candidates) && break
+    end
+    return candidates
+end
+
+# Rewrite lambda^d H(x, (t-x)/lambda) as a polynomial in x over QQ[t].
+# Its resultant with q(x) is the exact projection polynomial for
+# t = x + lambda*y.
+function separatingProjectionData(H, q, lambda::Int)
+    iszero(lambda) && throw(ArgumentError("lambda must not be zero"))
+
+    T, t = polynomial_ring(QQ, "t")
+    S, x = polynomial_ring(T, "x")
+    qNested = zero(S)
+    for i in 0:degree(q)
+        qNested += T(coeff(q, i)) * x^i
+    end
+
+    d = degree(H, 2)
+    transformed = zero(S)
+    for (c, e) in zip(coefficients(H), exponent_vectors(H))
+        transformed += T(c) *
+            x^e[1] *
+            (t - x)^e[2] *
+            lambda^(d - e[2])
+    end
+
+    labelPolynomial = resultant(qNested, transformed)
+    iszero(labelPolynomial) && return nothing
+    labelPolynomial = univariateSquarefreePart(labelPolynomial)
+
+    # A primitive pseudo-remainder sequence is much smaller than a Groebner
+    # basis here.  When it reaches degree one it gives A(t)x + C(t) = 0.
+    # Record every nonconstant content removed from a remainder: the relation
+    # is used at a root tau only after certifying that all these contents are
+    # nonzero at tau.
+    firstPolynomial = transformed
+    secondPolynomial = qNested
+    if degree(firstPolynomial) < degree(secondPolynomial)
+        firstPolynomial, secondPolynomial =
+            secondPolynomial, firstPolynomial
+    end
+
+    guards = elem_type(T)[]
+    while degree(secondPolynomial) > 1
+        remainder = -pseudorem(firstPolynomial, secondPolynomial)
+        iszero(remainder) && return nothing
+        commonContent = content(remainder)
+        if degree(commonContent) > 0
+            push!(guards, commonContent)
+            remainder = divexact(remainder, S(commonContent))
+        end
+        firstPolynomial, secondPolynomial =
+            secondPolynomial, remainder
+    end
+
+    degree(secondPolynomial) == 1 || return nothing
+    return (
+        label = labelPolynomial,
+        relation = secondPolynomial,
+        guards = guards,
+    )
+end
+
+# Certify a bijection between the retained (x,y) candidates and the real roots
+# of a separating linear projection t=x+lambda*y.
+function certifyCandidatePairs(H, q, xs, ys, candidates, lambda::Int)
+    projection = separatingProjectionData(H, q, lambda)
+    projection === nothing && return nothing
+
+    ts = realRootsAsAlgebraic(projection.label)
+    length(ts) == length(candidates) || return nothing
+
+    relation = projection.relation
+    coefficientOfX = coeff(relation, 1)
+    constantTerm = coeff(relation, 0)
+    candidateSet = Set(candidates)
+
+    for bits in (128, 256, 512, 1024, 2048, 4096)
+        B = ArbField(bits)
+        xballs = B.(xs)
+        yballs = B.(ys)
+        tballs = B.(ts)
+        pairwiseDisjoint(xballs) || continue
+        pairwiseDisjoint(yballs) || continue
+        pairwiseDisjoint(tballs) || continue
+
+        matched = Tuple{Int, Int}[]
+        certified = true
+        for tball in tballs
+            if any(
+                guard -> contains_zero(evaluate(guard, tball)),
+                projection.guards,
+            )
+                certified = false
+                break
+            end
+
+            denominator = evaluate(coefficientOfX, tball)
+            if contains_zero(denominator)
+                certified = false
+                break
+            end
+
+            xball = -evaluate(constantTerm, tball) / denominator
+            yball = (tball - xball) / B(lambda)
+            xmatches = findall(ball -> overlaps(xball, ball), xballs)
+            ymatches = findall(ball -> overlaps(yball, ball), yballs)
+            if length(xmatches) != 1 || length(ymatches) != 1
+                certified = false
+                break
+            end
+
+            pair = (only(xmatches), only(ymatches))
+            if !(pair in candidateSet) || pair in matched
+                certified = false
+                break
+            end
+            push!(matched, pair)
+        end
+
+        if certified && length(matched) == length(candidates)
+            sort!(matched)
+            return matched
+        end
+    end
+    return nothing
+end
+
+# Solve H(x,y)=q(x)=0 by factoring q and matching only within each irreducible
+# x-block.  Local y-resultants avoid the large global Cartesian product; a
+# third exact projection certifies the remaining coordinate correspondence.
+function pointsFromXProjection(H, q, precise::Int)
+    q = univariateSquarefreePart(q)
+    degree(q) <= 0 && return NamedTuple[]
     points = NamedTuple[]
 
-    # The eliminants give coordinate candidates.  Exact substitution pairs the
-    # correct x and y values and rejects the Cartesian-product false positives.
+    for (localFactor, _) in factor(q)
+        xs = realRootsAsAlgebraic(localFactor)
+        isempty(xs) && continue
+
+        R = parent(H)
+        localFactorXY = fromUnivariate(localFactor, R, 1)
+        localYResultant = resultant(localFactorXY, H, 1)
+        iszero(localYResultant) &&
+            throw(ArgumentError("the system is not zero-dimensional"))
+        localYPolynomial = toUnivariate(localYResultant, 2)
+        localYPolynomial === nothing &&
+            error("internal error: local resultant retained x")
+        ys = realRootsAsAlgebraic(localYPolynomial)
+        isempty(ys) && continue
+
+        candidates = arbCandidatePairs(H, xs, ys)
+        isempty(candidates) && continue
+
+        matched = nothing
+        for magnitude in 1:32
+            for lambda in (magnitude, -magnitude)
+                matched = certifyCandidatePairs(
+                    H,
+                    localFactor,
+                    xs,
+                    ys,
+                    candidates,
+                    lambda,
+                )
+                matched === nothing || break
+            end
+            matched === nothing || break
+        end
+        if matched === nothing
+            # Degenerate projections are rare.  Retain the original exact
+            # substitution as a local fallback, after factorization and Arb
+            # rejection have already made the candidate set small.
+            matched = [
+                (i, j) for (i, j) in candidates
+                if iszero(evaluateAtAlgebraicPoint(H, xs[i], ys[j]))
+            ]
+        end
+
+        for (i, j) in matched
+            a = xs[i]
+            b = ys[j]
+            box = (
+                isolateAlgebraicNumber(a, precise),
+                isolateAlgebraicNumber(b, precise),
+            )
+            push!(points, (x = a, y = b, box = box))
+        end
+    end
+
+    sort!(points, by = p -> (Float64(p.x), Float64(p.y)))
+    return points
+end
+
+# Generic fallback for a zero-dimensional system which has no supplied
+# univariate x-equation.  This retains the original exact matcher.
+function genericZeroDimensionalPoints(F, G, precise::Int)
+    tx = eliminationPolynomial(F, G, 1)
+    ty = eliminationPolynomial(F, G, 2)
+    xs = realRootsAsAlgebraic(tx)
+    ys = realRootsAsAlgebraic(ty)
+    points = NamedTuple[]
+
     for a in xs, b in ys
         if iszero(evaluateAtAlgebraicPoint(F, a, b)) &&
            iszero(evaluateAtAlgebraicPoint(G, a, b))
@@ -318,17 +583,32 @@ function zeroDimensionalPoints(F, G, precise::Int)
     return points
 end
 
+# Return all distinct exact real solutions of F = G = 0.
+function zeroDimensionalPoints(F, G, precise::Int)
+    parent(F) == parent(G) ||
+        throw(ArgumentError("F and G must have the same parent"))
+    iszero(F) && throw(ArgumentError("F must not be zero"))
+    iszero(G) && throw(ArgumentError("G must not be zero"))
+
+    fInX = toUnivariate(F, 1)
+    gInX = toUnivariate(G, 1)
+    if fInX !== nothing && degree(fInX) > 0 && gInX === nothing
+        points = pointsFromXProjection(G, fInX, precise)
+        points === nothing ||
+            return points
+    elseif gInX !== nothing && degree(gInX) > 0 && fInX === nothing
+        points = pointsFromXProjection(F, gInX, precise)
+        points === nothing ||
+            return points
+    end
+
+    return genericZeroDimensionalPoints(F, G, precise)
+end
+
 samePoint(p, q) = p.x == q.x && p.y == q.y
 
 
 # Curve-isolation algorithm
-
-function realRootsAsAlgebraic(q)
-    degree(q) <= 0 && return QQBarFieldElem[]
-    Qb = algebraic_closure(QQ)
-    squarefree_q = divexact(q, gcd(q, derivative(q)))
-    return unique(filter(is_real, roots(Qb, squarefree_q)))
-end
 
 # Isolate the finite topology data associated with P(x,y) = 0.
 function bivariateRealIsolation(P, precise::Int=32)
