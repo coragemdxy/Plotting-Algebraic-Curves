@@ -1,6 +1,7 @@
-using PlotCurveTopologyForBivariatePolynomial
 using Test
+using Nemo
+using PlotCurveTopologyForBivariatePolynomial
 
-@testset "PlotCurveTopologyForBivariatePolynomial.jl" begin
-    # Write your tests here.
-end
+include("isolation.jl")
+include("topology.jl")
+include("region_counting.jl")

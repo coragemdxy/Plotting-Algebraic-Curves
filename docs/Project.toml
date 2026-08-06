@@ -1,0 +1,9 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+PlotCurveTopologyForBivariatePolynomial = "4098c26b-f9df-4451-8f27-5d8a9793f9f5"
+
+[sources]
+PlotCurveTopologyForBivariatePolynomial = {path = ".."}
+
+[compat]
+Documenter = "1"

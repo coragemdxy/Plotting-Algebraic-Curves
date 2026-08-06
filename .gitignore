@@ -1,12 +1,31 @@
+# macOS
+.DS_Store
 
+# Julia
+/Manifest*.toml
+*.cov
+*.jl.cov
+*.jl.*.cov
+*.mem
+coverage/
+lcov.info
+.julia/
+
+# Generated documentation
+docs/build/
+docs/Manifest.toml
+
+# LaTeX build products
 *.aux
 *.fdb_latexmk
 *.fls
 *.log
 *.out
 *.synctex.gz
+*.toc
 *.xdv
-*.DS_Store
+docs/report/build/
 
-/Manifest*.toml
-
+# Local scratch and generated example output
+tmp/
+examples/output/

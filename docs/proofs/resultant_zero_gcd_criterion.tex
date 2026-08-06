@@ -1,0 +1,26 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsthm}
+
+\newtheorem{problem}{Problem}
+\newtheorem{proposition}{Proposition}
+
+\begin{document}
+
+\begin{problem}
+Suppose that \(F,G \in K[x]\), show that \(\gcd(F,G) \notin K[x]^{\times}\) if and only if
+\(\operatorname{Res}(F,G)=0\)
+\end{problem}
+
+\begin{proof}
+
+    Sufficiency: According to \(\gcd(F,G) \notin K[X]^{\times}\), we suppose that \(H=\gcd(F,G)\), then we have \(H \mid F\) and \(H \mid G\). So we can represent \(F = AH\) and
+    \(G = BH\). For \(A,B\), \(\deg(A) < \deg(F)\), \(\deg(B)<\deg(G)\). We can take \(A,-B \in K[X]\) so that \[BF-AG=ABH-ABH=0=\operatorname{res}(F,G)\].
+
+    Necessity: According to \(\operatorname{res}(F,G)=0\), so we know that \(\exists A, B \in K[X]\) so that \(\deg(A)<\deg(G)\), \(\deg(B)<\deg(F)\), \(A,B \neq0\) and \(AF+BG=\operatorname{res}(F,G)=0\).
+    Then we have \(AF = -BG\). We suppose that \(\gcd(F,G) \in K[X]^{\times}\), with \(AF=-BG\) we know that\(F \mid B\). If\(B \neq 0\), \(\deg(B) \ge \deg(F)\), contradiction, \(gcd(F,G) \notin K[x]^{\times}\)
+    If \(B = 0\), then \(A = 0\), contradiction, so \(\gcd(F,G) \notin K[x]^{\times}\)
+
+\end{proof}
+
+\end{document}

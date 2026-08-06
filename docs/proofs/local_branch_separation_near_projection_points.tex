@@ -1,0 +1,30 @@
+\documentclass{article}
+
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\def\review#1{\textcolor{red}{(#1)}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{problem}{Problem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{exercise}{Exercise}
+
+
+\begin{document}
+
+\begin{definition}
+    Let $P\in\mathbb{R}[x,y]$ be a squarefree polynomial, with $\deg_{y}(P) > 0$. We denote by $\operatorname{proj}(P)$ the set of points $x\in\mathbb{R}$ such that either $\operatorname{Disc}_{y}(P)(x)=0$ or $\operatorname{lc}_{y}(P)(x)=0$.
+\end{definition}
+
+\begin{exercise}
+    Let $P \in \mathbb{R}[x,y]$ be a squarefree polynomial, with $\deg_{y}(P) > 0$. Suppose that $\#\operatorname{proj}(P)<\infty$. Let $x_{1},x_{2},\dots,x_{s}$ be the elements of $\operatorname{proj}(P)$ in ascending order. For all $i = 1, \dots, s$,
+    there exists a set \(A = \left\{y \in \mathbb{R}: P(x_{i},y) = 0\right\}\), and \(\#A = t\). We can pose \(y'_{j} = (y_{j} +y_{j+1})/2\). These lines help to divide the whole region into t regions. Prove that there exists \(\epsilon>0\) such that every real branch of \(P=0\) in the strip \(|x-x_i|<\epsilon\) is disjoint from all horizontal lines \(y=y'_j\). Hence, near the vertical line \(x=x_i\), each branch stays in a single horizontal region separated by the levels \(y'_1,\dots,y'_{t-1}\).
+\end{exercise}
+
+\begin{proof}
+    For each \(x_{i}\), fix \(j\), we have \(P(x_{i}, y'_{j}) \neq 0\). Pose \(f(x) = P(x, y'_{j})\) is a polynomial function, so it's continuous. By the definition of continuity, there exists an \(\epsilon_{j} > 0\), such that for all \(|x-x_{i}| < \epsilon_{j}\), we have \(f(x) \neq 0\), which means that the curve \(\forall x' \in (x_{i}-\epsilon_{j}, x_{i}+\epsilon_{j}), P(x', y'_{j}) \neq 0\). Then for all \(y'_{j}\), we can obtain an \(\epsilon_{j}\). Let \(\epsilon = min(\epsilon_{j}), j = 1,2,\dots, t-1\), we have \(\forall x' \in (x_{i}-\epsilon, x_{i}+\epsilon), \forall j = 1,2,\dots, t-1, P(x', y'_{j}) \neq 0\)
+\end{proof}
+
+\end{document}
